@@ -27,12 +27,54 @@ Auto-create channel + notifikasi
 - Security Group membuka port 80 (HTTP) dan 443 (HTTPS jika pakai SSL)
 - Slack Bot Token
 
+## SSH Key Setup
+
+SSH key sudah dibuatkan di folder project:
+
+- **Private key**: `ec2-key` (jangan dishare!)
+- **Public key**: `ec2-key.pub`
+
+**Public key:**
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM34a2295alkVKQAspKXTP7dGGzjMvZUx6886nqp6dgY zoho-slack-bot-ec2
+```
+
+### Cara pasang ke EC2:
+
+**Opsi 1 - Via AWS Console (Launch Instance):**
+1. AWS Console → EC2 → Instances → Launch Instance
+2. Di bagian "Key pair", pilih "Create new key pair" atau upload public key
+3. Paste isi `ec2-key.pub`
+
+**Opsi 2 - Tambah ke instance yang sudah jalan:**
+```bash
+# Dari local, copy public key ke EC2
+ssh-copy-id -i ec2-key.pub ubuntu@your-ec2-ip
+
+# Atau manual
+cat ec2-key.pub | ssh -i existing-key.pem ubuntu@your-ec2-ip "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+```
+
+**Opsi 3 - AWS Systems Manager (SSM):**
+Jika sudah ada akses SSM, edit `~/.ssh/authorized_keys` di instance dan append public key.
+
+### SSH ke EC2
+
+```bash
+# Pastikan permission private key benar (600)
+chmod 600 ec2-key
+
+# Connect
+ssh -i ec2-key ubuntu@your-ec2-ip
+```
+
 ## Step-by-Step Deployment
 
 ### 1. SSH ke EC2
 
 ```bash
-ssh -i your-key.pem ubuntu@your-ec2-ip
+ssh -i ec2-key ubuntu@your-ec2-ip
 ```
 
 ### 2. Install Node.js LTS
@@ -47,7 +89,7 @@ sudo apt-get install -y nodejs
 ```bash
 cd ~
 # Copy project files ke EC2 (dari local)
-scp -i your-key.pem -r zoho-slack-bot ubuntu@your-ec2-ip:/home/ubuntu/
+scp -i ec2-key -r zoho-slack-bot ubuntu@your-ec2-ip:/home/ubuntu/
 ```
 
 Atau buat folder dan copy file manual:
